@@ -107,5 +107,6 @@ if options[:load_database]
   command_options << " --force" if options[:force]
   
   # Starts with 'perl' to be friendly with Windows
+  puts "perl #{conf.web_root}/twfy/scripts/xml2db.pl #{command_options}"
   system("perl #{conf.web_root}/twfy/scripts/xml2db.pl #{command_options}")
 end

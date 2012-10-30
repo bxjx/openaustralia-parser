@@ -6,6 +6,9 @@ require 'count'
 # Holds the data for debates on one day
 # Also knows how to output the XML data for that
 class Debates
+
+  attr_accessor :items
+  
   def initialize(date, house, logger = nil)
     @date, @house, @logger = date, house, logger
     @title = ""
@@ -54,12 +57,15 @@ class Debates
     @division_count = @division_count + 1
   end
   
-  def add_speech(speaker, time, url, content)
+  def add_speech(speaker, time, url, content, interjection=false, continuation=false)
     add_heading_for_real
     
     # Only add new speech if the speaker has changed
     if !@items.last.kind_of?(Speech) || speaker != last_speaker
-      @items << Speech.new(speaker, time, url, @count.clone, @date, @house, @logger)
+      speech = Speech.new(speaker, time, url, @count.clone, @date, @house, @logger)
+      speech.interjection = interjection
+      speech.continuation = continuation
+      @items << speech
     end
     @items.last.append_to_content(content)
   end
@@ -79,6 +85,31 @@ class Debates
     x.instruct!
     x.debates do
       @items.each {|i| i.output(x)}
+    end
+  end
+
+  def calculate_section_durations
+    @items[0..-2].each_with_index do |section, index|
+
+      next unless section.is_a?(Speech)
+
+      # Interjections are skipped
+      if section.interjection || section.continuation
+        next
+      end
+
+      # Scan ahead looking for the next section (skipping sections without time
+      # or interjections or continuations)
+      next_section = @items[(index + 1)..-1].detect{|next_item|
+        next_item.is_a?(Speech) && next_item.time && !next_item.interjection && !next_item.continuation
+      }
+
+      # Calculate the duration if a next section is found, otherwise, stop
+      if next_section
+        section.calculate_duration(next_section)
+      else
+        break
+      end
     end
   end
   

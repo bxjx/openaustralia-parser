@@ -5,10 +5,12 @@ require 'hpricot_additions'
 $KCODE = 'u'
 
 class HansardSpeech
-  attr_reader :logger, :title, :subtitle, :time, :day
+  attr_reader :logger, :title, :subtitle, :time, :day, :interjection, :continuation
   
   def initialize(content, title, subtitle, time, day, logger = nil)
     @content, @title, @subtitle, @time, @day, @logger = content, title, subtitle, time, day, logger
+    @interjection = @content.name == 'interjection'
+    @continuation = @content.name == 'continue'
   end
   
   # The url of a speech is just the url of the day that it comes from
@@ -26,11 +28,6 @@ class HansardSpeech
     aph_id_tag ? aph_id_tag.inner_html : nil
   end
   
-  # TODO: Rename this method to interjection?
-  def interjection
-    !@content.at('interjection').nil?
-  end
-
   private
   
   def speakername_from_tag

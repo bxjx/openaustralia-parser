@@ -169,7 +169,7 @@ class HansardParser
               # With interjections the next speech should never be by the person doing the interjection
               speaker = this_speaker unless speech.interjection
 
-              debates.add_speech(this_speaker, speech.time, speech.permanent_url, speech.clean_content)
+              debates.add_speech(this_speaker, speech.time, speech.permanent_url, speech.clean_content, speech.interjection, speech.continuation)
             end
             debates.increment_minor_count
           end
@@ -229,6 +229,9 @@ class HansardParser
     else
       @logger.info "Skipping #{house} speeches for #{date.strftime('%a %d %b %Y')} (no data available)"
     end
+
+    # Calculate section durations
+    debates.calculate_section_durations
 
     # Only output the debate file if there's going to be something in it
     debates.output(xml_filename) if content
